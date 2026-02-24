@@ -1,0 +1,80 @@
+/* Batch Detection Results - Grid, Cards, Result Images */
+
+.batch-results-section {
+  margin-top: 2rem;
+}
+
+.batch-results-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    var(--color-navy) 0%,
+    var(--color-accent) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 1.5rem 0;
+}
+
+.batch-results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.batch-result-card {
+  background: white;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.batch-result-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 16px rgba(225, 96, 76, 0.15);
+  border-color: var(--color-accent);
+}
+
+.batch-result-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--color-gray-50);
+}
+
+.batch-result-info {
+  padding: 1rem;
+  background: linear-gradient(180deg, white 0%, rgba(225, 96, 76, 0.02) 100%);
+}
+
+.result-filename {
+  font-weight: 600;
+  color: var(--color-navy);
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.result-stats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.result-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-gray-600);
+  font-size: 0.875rem;
+}
+
+.result-stat svg {
+  color: var(--color-accent);
+}

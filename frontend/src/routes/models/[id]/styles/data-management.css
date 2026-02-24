@@ -1,0 +1,139 @@
+/* History and Settings Tabs - Tables, Forms, Pagination */
+
+.history-tab {
+  padding: 1rem 0;
+}
+
+.history-header {
+  margin-bottom: 1.5rem;
+}
+
+.history-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-navy);
+  margin: 0 0 0.5rem 0;
+}
+
+.history-header .subtitle {
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.history-table {
+  background: var(--color-bg-table);
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: linear-gradient(
+    135deg,
+    rgba(29, 47, 67, 0.05) 0%,
+    rgba(225, 96, 76, 0.05) 100%
+  );
+}
+
+th {
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--color-navy);
+  border-bottom: 2px solid var(--color-gray-200);
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(225, 96, 76, 0.05) 0%,
+    transparent 100%
+  );
+  transform: scale(1.005);
+  transition: all 0.2s ease;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: var(--transition-fast);
+}
+
+.btn-icon:hover {
+  background: var(--color-gray-100);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.pagination-info {
+  color: var(--color-gray-600);
+  font-weight: 500;
+}
+
+.settings-tab {
+  padding: 1rem 0;
+  max-width: 800px;
+}
+
+.settings-card {
+  background: var(--color-bg-card);
+  border: 2px solid rgba(225, 96, 76, 0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.settings-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: linear-gradient(
+    135deg,
+    var(--color-navy) 0%,
+    var(--color-accent) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 2rem 0;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-group input:disabled,
+.form-group textarea:disabled {
+  background: var(--color-gray-100);
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}

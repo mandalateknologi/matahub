@@ -1,0 +1,712 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { datasetsAPI } from '../../../lib/api/datasets';
+  import { uiStore } from '../../../lib/stores/uiStore';
+  import type { DatasetDetail } from '../../../types';
+
+  // Get dataset ID from URL
+  let datasetId: number = 0;
+
+  // State
+  let dataset: DatasetDetail | null = null;
+  let loading = false;
+  let saving = false;
+  let uploading = false;
+
+  // Form state
+  let editMode = false;
+  let formData = {
+    name: '',
+    description: '',
+    classes: {} as { [key: string]: string }
+  };
+
+  // Class editing
+  let newClassName = '';
+  let editingClassId: string | null = null;
+
+  // File upload
+  let uploadFile: File | null = null;
+
+  // Delete confirmation
+  let showDeleteModal = false;
+
+  onMount(async () => {
+    // Extract dataset ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const idStr = pathParts[pathParts.length - 1];
+    datasetId = parseInt(idStr);
+    
+    // Validate ID before loading
+    if (isNaN(datasetId) || datasetId <= 0) {
+      uiStore.showToast('Invalid dataset ID', 'error');
+      return;
+    }
+    
+    await loadDataset();
+  });
+
+  async function loadDataset() {
+    loading = true;
+    try {
+      dataset = await datasetsAPI.get(datasetId);
+      formData = {
+        name: dataset.name,
+        description: dataset.description || '',
+        classes: { ...dataset.classes_json }
+      };
+    } catch (error) {
+      uiStore.showToast('Failed to load dataset', 'error');
+      console.error('Error loading dataset:', error);
+    } finally {
+      loading = false;
+    }
+  }
+
+  function toggleEditMode() {
+    if (editMode) {
+      // Cancel edit - reset form
+      if (dataset) {
+        formData = {
+          name: dataset.name,
+          description: dataset.description || '',
+          classes: { ...dataset.classes_json }
+        };
+      }
+    }
+    editMode = !editMode;
+  }
+
+  async function handleSave() {
+    if (!dataset) return;
+
+    saving = true;
+    try {
+      const updates: any = {};
+      
+      if (formData.name !== dataset.name) {
+        updates.name = formData.name;
+      }
+      if (formData.description !== dataset.description) {
+        updates.description = formData.description;
+      }
+      if (JSON.stringify(formData.classes) !== JSON.stringify(dataset.classes_json)) {
+        updates.classes_json = formData.classes;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        dataset = await datasetsAPI.update(datasetId, updates);
+        uiStore.showToast('Dataset updated successfully', 'success');
+        editMode = false;
+      } else {
+        uiStore.showToast('No changes to save', 'warning');
+        editMode = false;
+      }
+    } catch (error) {
+      uiStore.showToast('Failed to update dataset', 'error');
+      console.error('Error updating dataset:', error);
+    } finally {
+      saving = false;
+    }
+  }
+
+  function handleFileSelect(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      uploadFile = target.files[0];
+    }
+  }
+
+  async function handleFileUpload() {
+    if (!uploadFile || !dataset) return;
+
+    uploading = true;
+    try {
+      dataset = await datasetsAPI.update(datasetId, { file: uploadFile });
+      uiStore.showToast('Files uploaded successfully', 'success');
+      uploadFile = null;
+      // Reset file input
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    } catch (error) {
+      uiStore.showToast('Failed to upload files', 'error');
+      console.error('Error uploading files:', error);
+    } finally {
+      uploading = false;
+    }
+  }
+
+  function addNewClass() {
+    if (!newClassName.trim()) {
+      uiStore.showToast('Please enter a class name', 'error');
+      return;
+    }
+
+    // Find next available ID
+    const existingIds = Object.keys(formData.classes).map(id => parseInt(id));
+    const nextId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 0;
+
+    formData.classes[nextId.toString()] = newClassName.trim();
+    formData.classes = { ...formData.classes }; // Trigger reactivity
+    newClassName = '';
+  }
+
+  function removeClass(classId: string) {
+    delete formData.classes[classId];
+    formData.classes = { ...formData.classes }; // Trigger reactivity
+  }
+
+  function startEditClass(classId: string) {
+    editingClassId = classId;
+  }
+
+  function saveClassEdit(classId: string, newName: string) {
+    if (newName.trim()) {
+      formData.classes[classId] = newName.trim();
+      formData.classes = { ...formData.classes };
+    }
+    editingClassId = null;
+  }
+
+  async function handleDelete() {
+    if (!dataset) return;
+
+    try {
+      await datasetsAPI.delete(datasetId);
+      uiStore.showToast('Dataset deleted successfully', 'success');
+      window.location.href = '/datasets';
+    } catch (error) {
+      uiStore.showToast('Failed to delete dataset', 'error');
+      console.error('Error deleting dataset:', error);
+    } finally {
+      showDeleteModal = false;
+    }
+  }
+
+  function getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'empty': return 'status-empty';
+      case 'incomplete': return 'status-incomplete';
+      case 'valid': return 'status-valid';
+      default: return '';
+    }
+  }
+
+  function getStatusText(status: string): string {
+    switch (status) {
+      case 'empty': return 'Empty - No files uploaded';
+      case 'incomplete': return 'Incomplete - Missing files or validation failed';
+      case 'valid': return 'Valid - Ready for training';
+      default: return status;
+    }
+  }
+</script>
+
+<div class="page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" on:click={() => window.location.href = '/datasets'}>
+        ← Back to Datasets
+      </button>
+      <h1>{dataset?.name || 'Loading...'}</h1>
+    </div>
+    <div class="header-actions">
+      {#if !editMode}
+        <button class="btn btn-outline" on:click={toggleEditMode}>
+          ✏️ Edit
+        </button>
+      {:else}
+        <button class="btn btn-outline" on:click={toggleEditMode}>
+          Cancel
+        </button>
+        <button class="btn btn-primary" on:click={handleSave} disabled={saving}>
+          {saving ? 'Saving...' : 'Save Changes'}
+        </button>
+      {/if}
+      <button class="btn btn-danger" on:click={() => showDeleteModal = true}>
+        🗑️ Delete
+      </button>
+    </div>
+  </div>
+
+  {#if loading}
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <div class="spinner-text">Loading dataset...</div>
+    </div>
+  {:else if dataset}
+    <!-- Dataset Info Section -->
+    <div class="section">
+      <h2>Dataset Information</h2>
+      
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Name</label>
+          {#if editMode}
+            <input type="text" bind:value={formData.name} />
+          {:else}
+            <div class="info-value">{dataset.name}</div>
+          {/if}
+        </div>
+
+        <div class="info-item">
+          <label>Description</label>
+          {#if editMode}
+            <textarea bind:value={formData.description} rows="3"></textarea>
+          {:else}
+            <div class="info-value">{dataset.description || 'No description'}</div>
+          {/if}
+        </div>
+
+        <div class="info-item">
+          <label>Task Type</label>
+          <div class="info-value">
+            <span class="task-badge" class:classify={dataset.task_type === 'classify'}>
+              {dataset.task_type === 'classify' ? 'Classify' : dataset.task_type}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <label>Status</label>
+          <div class="info-value">
+            <span class="status-badge {getStatusBadgeClass(dataset.status)}">
+              {getStatusText(dataset.status)}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <label>Images</label>
+          <div class="info-value">{dataset.images_count}</div>
+        </div>
+
+        <div class="info-item">
+          <label>Labels</label>
+          <div class="info-value">{dataset.labels_count}</div>
+        </div>
+
+        <div class="info-item">
+          <label>Created</label>
+          <div class="info-value">{new Date(dataset.created_at).toLocaleString()}</div>
+        </div>
+
+        {#if dataset.storage_path}
+          <div class="info-item full-width">
+            <label>Storage Path</label>
+            <div class="info-value code">{dataset.storage_path}</div>
+          </div>
+        {/if}
+
+        {#if dataset.yaml_path}
+          <div class="info-item full-width">
+            <label>YAML Config Path</label>
+            <div class="info-value code">{dataset.yaml_path}</div>
+          </div>
+        {/if}
+      </div>
+    </div>
+
+    <!-- Classes Section -->
+    <div class="section">
+      <h2>Classes ({Object.keys(formData.classes).length})</h2>
+      
+      {#if editMode}
+        <div class="class-editor">
+          <div class="add-class-form">
+            <input
+              type="text"
+              placeholder="New class name"
+              bind:value={newClassName}
+              on:keydown={(e) => e.key === 'Enter' && addNewClass()}
+            />
+            <button class="btn btn-sm btn-primary" on:click={addNewClass}>
+              Add Class
+            </button>
+          </div>
+
+          <div class="class-list">
+            {#each Object.entries(formData.classes) as [classId, className]}
+              <div class="class-item">
+                <span class="class-id">{classId}</span>
+                {#if editingClassId === classId}
+                  <input
+                    type="text"
+                    value={className}
+                    on:blur={(e) => saveClassEdit(classId, e.currentTarget.value)}
+                    on:keydown={(e) => e.key === 'Enter' && saveClassEdit(classId, e.currentTarget.value)}
+                    autofocus
+                  />
+                {:else}
+                  <span class="class-name" on:click={() => startEditClass(classId)}>{className}</span>
+                {/if}
+                <button class="btn-icon" on:click={() => removeClass(classId)} title="Remove">
+                  🗑️
+                </button>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {:else}
+        <div class="class-list">
+          {#each Object.entries(dataset.classes_json) as [classId, className]}
+            <div class="class-item">
+              <span class="class-id">{classId}</span>
+              <span class="class-name">{className}</span>
+            </div>
+          {:else}
+            <p class="text-muted">No classes defined yet</p>
+          {/each}
+        </div>
+      {/if}
+    </div>
+
+    <!-- File Upload Section (for empty/incomplete datasets) -->
+    {#if dataset.status === 'empty' || dataset.status === 'incomplete'}
+      <div class="section">
+        <h2>Upload Files</h2>
+        <p class="text-muted">
+          Upload a ZIP file containing images/ and labels/ folders to add data to this dataset.
+        </p>
+        
+        <div class="upload-zone">
+          <input
+            id="file-upload"
+            type="file"
+            accept=".zip"
+            on:change={handleFileSelect}
+          />
+          <label for="file-upload" class="upload-label">
+            📁 Choose ZIP File
+          </label>
+          
+          {#if uploadFile}
+            <div class="selected-file">
+              Selected: {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
+            </div>
+            <button class="btn btn-primary" on:click={handleFileUpload} disabled={uploading}>
+              {uploading ? 'Uploading...' : 'Upload Files'}
+            </button>
+          {/if}
+        </div>
+      </div>
+    {/if}
+  {:else}
+    <div class="empty-state">
+      <h3>Dataset not found</h3>
+      <p>The requested dataset could not be loaded.</p>
+      <button class="btn btn-primary" on:click={() => window.location.href = '/datasets'}>
+        Back to Datasets
+      </button>
+    </div>
+  {/if}
+</div>
+
+<!-- Delete Confirmation Modal -->
+{#if showDeleteModal}
+  <div class="modal-overlay" on:click={() => showDeleteModal = false}>
+    <div class="modal-content" on:click|stopPropagation>
+      <div class="modal-header">
+        <h2>Delete Dataset</h2>
+        <button class="close-btn" on:click={() => showDeleteModal = false}>&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong>{dataset?.name}</strong>?</p>
+        <p class="text-error">This action cannot be undone. All files and data will be permanently deleted.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" on:click={() => showDeleteModal = false}>
+          Cancel
+        </button>
+        <button class="btn btn-danger" on:click={handleDelete}>
+          Delete Dataset
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<style>
+  .page {
+    padding: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  .header-left h1 {
+    margin-top: var(--spacing-sm);
+    margin-bottom: 0;
+  }
+
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--color-accent);
+    font-size: var(--font-size-base);
+    cursor: pointer;
+    padding: var(--spacing-xs) 0;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .btn-back:hover {
+    text-decoration: underline;
+    transform: none;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+
+  .btn-danger {
+    background-color: var(--color-error);
+    color: var(--color-white);
+  }
+
+  .section {
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .section h2 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    color: var(--color-navy);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .info-item.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .info-item label {
+    font-weight: 600;
+    color: var(--color-grey);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+  }
+
+  .info-value {
+    color: var(--color-navy);
+    font-size: var(--font-size-base);
+  }
+
+  .info-value.code {
+    font-family: 'Courier New', monospace;
+    background-color: var(--color-bg-light1);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    word-break: break-all;
+  }
+
+  .task-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: var(--color-bg-light1);
+    color: var(--color-navy);
+    display: inline-block;
+  }
+
+  .task-badge.classify {
+    background-color: #FED7AA;
+    color: #C2410C;
+  }
+
+  .status-badge {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    display: inline-block;
+  }
+
+  .status-badge.status-empty {
+    background-color: #E0E7FF;
+    color: #4338CA;
+  }
+
+  .status-badge.status-incomplete {
+    background-color: #FEF3C7;
+    color: #B45309;
+  }
+
+  .status-badge.status-valid {
+    background-color: #D1FAE5;
+    color: #065F46;
+  }
+
+  .class-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .add-class-form {
+    display: flex;
+    gap: var(--spacing-sm);
+  }
+
+  .add-class-form input {
+    flex: 1;
+  }
+
+  .class-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .class-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-bg-light1);
+    border-radius: var(--radius-sm);
+  }
+
+  .class-id {
+    font-weight: 600;
+    color: var(--color-accent);
+    min-width: 40px;
+  }
+
+  .class-name {
+    flex: 1;
+    cursor: text;
+  }
+
+  .class-item input {
+    flex: 1;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-lg);
+    padding: var(--spacing-xs);
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+  }
+
+  .btn-icon:hover {
+    opacity: 1;
+    transform: none;
+  }
+
+  .upload-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .upload-zone input[type="file"] {
+    display: none;
+  }
+
+  .upload-label {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background-color: var(--color-navy);
+    color: var(--color-white);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: 500;
+  }
+
+  .upload-label:hover {
+    background-color: var(--color-accent);
+    transform: scale(1.03);
+  }
+
+  .selected-file {
+    color: var(--color-grey);
+    font-size: var(--font-size-sm);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+  }
+
+  .empty-state h3 {
+    color: var(--color-navy);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .empty-state p {
+    color: var(--color-grey);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--color-grey);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .close-btn:hover {
+    color: var(--color-navy);
+    transform: none;
+  }
+
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .header-actions {
+      justify-content: stretch;
+    }
+
+    .header-actions button {
+      flex: 1;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

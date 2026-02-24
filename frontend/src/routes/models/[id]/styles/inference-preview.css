@@ -1,0 +1,88 @@
+/* Inference Preview Panel - Canvas, Zoom Controls, Empty State */
+
+.preview-panel {
+  background: linear-gradient(135deg, white 0%, rgba(29, 47, 67, 0.02) 100%);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 16px;
+  padding: 1.5rem;
+  min-height: 400px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+.preview-panel::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 16px;
+  padding: 3px;
+  background: var(--color-bg-card);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.canvas-container {
+  position: relative;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 6px;
+  background: white;
+  color: var(--color-navy);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.zoom-btn:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.detection-canvas {
+  max-width: 100%;
+  border: 2px solid var(--color-gray-400);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--color-gray-400);
+  border: 2px dashed var(--color-gray-300);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.empty-state svg {
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.empty-state .subtitle {
+  font-size: 0.875rem;
+  color: var(--color-gray-500);
+}

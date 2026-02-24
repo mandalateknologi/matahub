@@ -1,0 +1,178 @@
+/* XYFlow Custom Theme for ATVISION */
+/* Override default XYFlow styles with brand colors */
+
+:root {
+  /* XYFlow Theme Variables */
+  --xy-background-color: #fafafa;
+  --xy-node-color-default: var(--color-navy);
+  --xy-node-background-color-default: #ffffff;
+  --xy-node-border-default: 2px solid transparent;
+  --xy-node-border-radius-default: 12px;
+  --xy-node-boxshadow-default: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --xy-node-boxshadow-selected-default: none;
+
+  --xy-handle-background-color-default: #ffffff;
+  --xy-handle-border-color-default: var(--color-accent);
+
+  --xy-edge-stroke-default: #999;
+  --xy-edge-stroke-width-default: 2px;
+  --xy-edge-stroke-selected-default: var(--color-accent);
+
+  --xy-controls-button-background-color-default: white;
+  --xy-controls-button-background-color-hover-default: var(--color-bg-light1);
+  --xy-controls-button-border-color-default: var(--color-border);
+}
+
+/* Node Styles */
+.svelte-flow__node {
+  font-family: var(--font-primary);
+}
+
+.svelte-flow__node.selected {
+  /* Selection is handled by individual node components */
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Hide the default selection box that appears around nodes */
+.svelte-flow__node.selected::before,
+.svelte-flow__node.selected::after {
+  display: none !important;
+}
+
+.svelte-flow__node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Handle Styles */
+.svelte-flow__handle {
+  width: 12px;
+  height: 12px;
+  border: 2px solid white;
+  background: var(--color-accent);
+  transition: all 0.2s;
+  opacity: 0 !important; /* Hide by default with !important */
+}
+
+/* Show handles on node hover */
+.svelte-flow__node:hover .svelte-flow__handle {
+  opacity: 1 !important;
+}
+
+/* Show handles when actively connecting (not just connectionindicator) */
+.svelte-flow__handle.connectingfrom,
+.svelte-flow__handle.connectingto,
+.svelte-flow__handle.connecting {
+  opacity: 1 !important;
+}
+
+/* Show valid connection targets when dragging */
+.svelte-flow__handle.valid {
+  opacity: 1 !important;
+}
+
+.svelte-flow__handle:hover {
+  width: 16px;
+  height: 16px;
+  background: var(--color-navy);
+}
+
+.svelte-flow__handle.connectionindicator {
+  background: var(--color-status-success);
+}
+
+.svelte-flow__handle.connectingfrom {
+  background: var(--color-accent);
+  animation: pulse 1s infinite;
+}
+
+.svelte-flow__handle.connectingto {
+  background: var(--color-status-success);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 3px rgba(225, 96, 76, 0.3);
+  }
+  50% {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 5px rgba(225, 96, 76, 0.5);
+  }
+}
+
+/* Edge Styles */
+.svelte-flow__edge-path {
+  stroke: #999;
+  stroke-width: 2px;
+}
+
+.svelte-flow__edge.selected .svelte-flow__edge-path {
+  stroke: var(--color-accent);
+  stroke-width: 3px;
+}
+
+.svelte-flow__edge:hover .svelte-flow__edge-path {
+  stroke: var(--color-navy);
+}
+
+.svelte-flow__edge-label {
+  background: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  border: 1px solid var(--color-border);
+  color: var(--color-navy);
+  font-weight: 600;
+}
+
+/* Controls Styles */
+.svelte-flow__controls {
+  box-shadow: var(--shadow-md);
+}
+
+.svelte-flow__controls-button {
+  background: white;
+  border: 1px solid var(--color-border);
+  color: var(--color-navy);
+}
+
+.svelte-flow__controls-button:hover {
+  background: var(--color-bg-light1);
+  border-color: var(--color-accent);
+}
+
+/* Background Styles */
+.svelte-flow__background {
+  background-color: #fafafa;
+}
+
+.svelte-flow__background-pattern {
+  stroke: #e0e0e0;
+}
+
+/* Selection Box */
+.svelte-flow__selection {
+  background: rgba(225, 96, 76, 0.1);
+  border: 2px solid var(--color-accent);
+}
+
+/* Minimap (if enabled) */
+.svelte-flow__minimap {
+  background: white;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.svelte-flow__minimap-mask {
+  fill: var(--color-accent);
+  fill-opacity: 0.1;
+}
+
+.svelte-flow__minimap-node {
+  fill: var(--color-navy);
+  stroke: none;
+}
