@@ -102,19 +102,19 @@
     },
     { path: "/visionmask", label: "VisionMask", icon: "🎨" },
     { label: "Operations", type: "separator" },
-    {
-      path: "/playbooks",
-      label: "Playbooks",
-      icon: "📖",
-      roles: ["admin"],
-    },
-    { path: "/campaigns", label: "Campaigns", icon: "📁" },
-    {
-      path: "/workflows",
-      label: "Workflows",
-      icon: "🔄",
-      roles: ["admin", "project_admin"],
-    },
+    // {
+    //   path: "/playbooks",
+    //   label: "Playbooks",
+    //   icon: "📖",
+    //   roles: ["admin"],
+    // },
+    // { path: "/campaigns", label: "Campaigns", icon: "📁" },
+    // {
+    //   path: "/workflows",
+    //   label: "Workflows",
+    //   icon: "🔄",
+    //   roles: ["admin", "project_admin"],
+    // },
     // { path: "/predictions/reports", label: "Reports", icon: "📈" },
   ];
 
