@@ -8,6 +8,19 @@ dependencies = [
     "uvicorn",
     "sqlalchemy"
 ]
+collect_ignore = [
+    "docker",
+    "tests",
+    "*.md",
+    "*.txt",
+    "*.pyc",
+    "*.log",
+    "*.env",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "env"
+]
 
 [build-system]
 requires = ["setuptools"]
