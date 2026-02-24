@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background: linear-gradient(135deg, #1d2f43 0%, #2a4158 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 8px 8px 0 0;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .content {
+        background: #f9f9f9;
+        padding: 30px;
+        border: 1px solid #e0e0e0;
+        border-top: none;
+      }
+      .status {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: bold;
+        margin: 15px 0;
+      }
+      .status.completed {
+        background: #4caf50;
+        color: white;
+      }
+      .status.failed {
+        background: #f44336;
+        color: white;
+      }
+      .status.running {
+        background: #2196f3;
+        color: white;
+      }
+      .info-box {
+        background: white;
+        padding: 15px;
+        border-left: 4px solid #e1604c;
+        margin: 15px 0;
+      }
+      .info-box strong {
+        color: #1d2f43;
+      }
+      .footer {
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 0 0 8px 8px;
+        text-align: center;
+        font-size: 12px;
+        color: #666;
+      }
+      .button {
+        display: inline-block;
+        padding: 12px 24px;
+        background: #e1604c;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        margin: 15px 0;
+      }
+      .button:hover {
+        background: #d14d38;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🔧 Workflow Execution Complete</h1>
+    </div>
+
+    <div class="content">
+      <p>Hello,</p>
+
+      <p>
+        Your workflow <strong>{{ workflow_name }}</strong> has completed
+        execution.
+      </p>
+
+      <div class="status {{ status }}">Status: {{ status|upper }}</div>
+
+      <div class="info-box">
+        <strong>Workflow ID:</strong> {{ workflow_id }}<br />
+        <strong>Execution ID:</strong> {{ execution_id }}<br />
+        <strong>Started:</strong> {{ started_at }}<br />
+        <strong>Completed:</strong> {{ completed_at }}<br />
+        {% if duration %}
+        <strong>Duration:</strong> {{ duration }}<br />
+        {% endif %}
+      </div>
+
+      {% if error_message %}
+      <div class="info-box" style="border-left-color: #f44336">
+        <strong>Error:</strong> {{ error_message }}
+      </div>
+      {% endif %} {% if summary %}
+      <h3>Execution Summary</h3>
+      <div class="info-box">{{ summary }}</div>
+      {% endif %}
+
+      <p style="text-align: center">
+        <a
+          href="{{ app_url }}/workflows/{{ workflow_id }}/executions/{{ execution_id }}"
+          class="button"
+        >
+          View Execution Details
+        </a>
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>This is an automated message from ATVISION Workflows.</p>
+      <p>© {{ year }} ATVISION. All rights reserved.</p>
+    </div>
+  </body>
+</html>

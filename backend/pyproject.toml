@@ -1,0 +1,14 @@
+[project]
+name = "matahub-ce"
+version = "0.1.0"
+description = "Matahub Community Edition"
+authors = [{name="Datamata"}]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
