@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     # Storage Paths
     # Loaded from .env, fallback to computed path if not set
     DATA_DIR: str = ""
+    detection_retention_days: int = 30
     
     def model_post_init(self, __context):
         """Called after model initialization to set defaults."""
