@@ -1,6 +1,6 @@
 [project]
 name = "matahub"
-version = "0.0.1"
+version = "0.0.2"
 description = "Matahub Community Edition"
 authors = [{name="Datamata"}]
 dependencies = [
