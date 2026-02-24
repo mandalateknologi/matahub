@@ -1,22 +1,22 @@
 FROM node:20-alpine AS builder
 
-WORKDIR /frontend
+WORKDIR /app
 
 # Copy frontend package files
-COPY frontend/package*.json ./
+COPY package*.json .
 
 # Install dependencies
 RUN npm install
 
 # Copy frontend source
-COPY frontend/ ./
+COPY . .
 
 # Build frontend
 RUN npm run build
 
 FROM nginx:alpine AS runtime
 
-COPY --from=builder /frontend/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 

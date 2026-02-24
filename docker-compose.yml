@@ -1,0 +1,61 @@
+name: matahub-ce
+
+networks:
+  matahub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: matahub-postgres
+    environment:
+      POSTGRES_DB: matahub
+      POSTGRES_USER: matahub
+      POSTGRES_PASSWORD: matahub_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U matahub" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - matahub-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: ./docker/Dockerfile
+    container_name: matahub-api
+    environment:
+      DATABASE_URL: postgresql://matahub:matahub_password@postgres:5432/matahub
+      SECRET_KEY: your-super-secret-key-change-in-production-min-32-chars
+      CORS_ORIGINS: http://localhost,http://localhost:8000
+      DEBUG: False
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - matahub-network
+
+  app:
+    build:
+      context: ./frontend
+      dockerfile: ./docker/Dockerfile
+    container_name: matahub-app
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - matahub-network
